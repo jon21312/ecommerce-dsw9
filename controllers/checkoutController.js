@@ -22,7 +22,6 @@ async function getPayPalAccessToken() {
   const data = await res.json();
   return data.access_token;
 }
-
 const checkoutController = {
   getCheckoutPage: (req, res) => {
     if (!req.session.cart || req.session.cart.items.length === 0)
