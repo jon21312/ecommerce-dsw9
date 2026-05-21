@@ -1,21 +1,66 @@
 // models/Order.js
 const { DataTypes } = require('sequelize');
-const sequelize     = require('../config/database');
+const sequelize = require('../config/database');
 
 const Order = sequelize.define('Order', {
-  id:        { type: DataTypes.INTEGER,        primaryKey: true, autoIncrement: true },
-  firstName: { type: DataTypes.STRING,         allowNull: false },
-  lastName:  { type: DataTypes.STRING,         allowNull: false },
-  email:     { type: DataTypes.STRING,         allowNull: false },
-  address:   { type: DataTypes.STRING,         allowNull: false },
-  city:      { type: DataTypes.STRING,         allowNull: false },
-  province:  { type: DataTypes.STRING,         allowNull: false },
-  zip:       { type: DataTypes.STRING },
-  phone:     { type: DataTypes.STRING,         allowNull: false },
-  total:     { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-  paymentId: { type: DataTypes.STRING },
+  id: { 
+    type: DataTypes.INTEGER, 
+    primaryKey: true, 
+    autoIncrement: true 
+  },
+  firstName: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  lastName: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  email: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  address: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  city: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  province: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  zip: { 
+    type: DataTypes.STRING 
+  },
+  phone: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  total: { 
+    type: DataTypes.DECIMAL(10, 2), 
+    allowNull: false 
+  },
+  paymentId: { 
+    type: DataTypes.STRING 
+  },
   // pending | paid | payment_failed | canceled
-  status:    { type: DataTypes.STRING,         defaultValue: 'pending' }
+  status: { 
+    type: DataTypes.STRING, 
+    defaultValue: 'pending' 
+  },
+  // Agregado correctamente dentro de la definición del modelo
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // Permite nulos si manejas compras como invitado (guest checkout)
+    field: 'user_id',
+    references: { 
+      model: 'users', // Debe coincidir con el nombre de la tabla de usuarios
+      key: 'id' 
+    }
+  }
 });
 
 module.exports = Order;
