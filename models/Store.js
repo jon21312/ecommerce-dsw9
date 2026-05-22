@@ -1,7 +1,7 @@
 // models/Store.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const Store = sequelize.define('Store', {
   name:          { type: DataTypes.STRING(100), allowNull: false },
