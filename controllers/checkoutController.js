@@ -22,6 +22,7 @@ async function getPayPalAccessToken() {
   const data = await res.json();
   return data.access_token;
 }
+
 const checkoutController = {
   getCheckoutPage: (req, res) => {
     if (!req.session.cart || req.session.cart.items.length === 0)
@@ -34,23 +35,37 @@ const checkoutController = {
     try {
       if (!req.session.cart || req.session.cart.items.length === 0)
         return res.redirect('/cart');
-      const cart  = req.session.cart;
+        
+      const cart = req.session.cart;
+
+      // Se guardan los datos usando camelCase para JS que mapean a snake_case en DB
       const order = await Order.create({
-        firstName: req.body.firstName, lastName:  req.body.lastName,
-        email:     req.body.email,     address:   req.body.address,
-        city:      req.body.city,      province:  req.body.province,
-        zip:       req.body.zip || '', phone:     req.body.phone,
-        total:     cart.totalPrice,    status:    'pending'
+        firstName: req.body.firstName, 
+        lastName:  req.body.lastName,
+        email:     req.body.email,     
+        address:   req.body.address,
+        city:      req.body.city,      
+        province:  req.body.province,
+        zip:       req.body.zip || '', 
+        phone:     req.body.phone,
+        total:     cart.totalPrice,    
+        status:    'pending',
+        userId:    req.session.userId || null // Integrado fragmento de forma limpia
       });
-      for (const item of cart.items) {
-        await OrderItem.create({
-          OrderId:   order.id,
-          ProductId: item.product.id,
-          quantity:  item.quantity,
-          price:     item.product.price
-        });
-      }
+
+      // Crear cada elemento asignando las FKs correspondientes
+     for (const item of cart.items) {
+  await OrderItem.create({
+    order_id:   order.id,
+    product_id: item.product.id,
+    store_id:   item.product.store_id || null,
+    quantity:   item.quantity,
+    price:      item.product.price
+  });
+}
+
       req.session.pendingOrderId = order.id;
+
       // Renderiza la vista con los botones de PayPal
       res.render('payment', {
         title: 'Procesar Pago',
@@ -58,6 +73,7 @@ const checkoutController = {
         paypalClientId: process.env.PAYPAL_CLIENT_ID
       });
     } catch (err) {
+      console.error(err);
       res.status(500).render('error', { title: 'Error', message: 'Error al procesar el pedido.' });
     }
   },
@@ -65,8 +81,9 @@ const checkoutController = {
   // 2. El JS de payment.ejs llama a este endpoint para crear la orden en PayPal
   createPayPalOrder: async (req, res) => {
     try {
-      const order       = await Order.findByPk(parseInt(req.body.orderId));
+      const order = await Order.findByPk(parseInt(req.body.orderId));
       if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+
       const accessToken = await getPayPalAccessToken();
       const response    = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
         method: 'POST',
@@ -85,7 +102,8 @@ const checkoutController = {
       res.status(500).json({ error: 'Error al crear orden PayPal' });
     }
   },
-    // 3. El JS de payment.ejs llama aquí cuando el usuario aprueba en PayPal
+
+  // 3. El JS de payment.ejs llama aquí cuando el usuario aprueba en PayPal
   capturePayPalOrder: async (req, res) => {
     try {
       const { paypalOrderId, orderId } = req.body;
@@ -117,7 +135,8 @@ const checkoutController = {
   handleCancelPayment: async (req, res) => {
     try {
       const order = await Order.findByPk(parseInt(req.query.orderId));
-      if (order) await order.update({ status: 'cancelled' });
+      if (order) await order.update({ status: 'canceled' }); // Normalizado a 'canceled'
+      
       res.render('payment-failed', {
         title:   'Pago Cancelado',
         message: 'Cancelaste el proceso de pago. Tu pedido no fue procesado.'
