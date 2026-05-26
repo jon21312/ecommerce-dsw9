@@ -85,6 +85,29 @@ app.use(['/store/login', '/store/register',
 // Rutas — junto a los app.use() existentes:
 app.use('/store', storeAuthRoutes);
 
+
+// app.js — AGREGAR (1/4)
+
+// Imports — junto a los require existentes:
+const storeAuthRoutes = require('./routes/storeAuth');
+const { attachLocals } = require('./middleware/authMiddleware');
+
+// Después de app.use(session(...)):
+app.use(attachLocals);
+
+// Las vistas de auth y admin tienen su propio HTML completo con admin.css
+// y NO deben pasar por layout.ejs. Este middleware lo desactiva para esas rutas.
+app.use(['/store/login', '/store/register',
+         '/user/login',  '/user/register',
+         '/store-admin', '/customer'],
+  (req, res, next) => { res.locals.layout = false; next(); }
+);
+
+// Rutas — junto a los app.use() existentes:
+app.use('/store', storeAuthRoutes);
+
+
+
 // app.js — AGREGAR (2/4)
 
 // Import:
@@ -92,3 +115,29 @@ const userAuthRoutes = require('./routes/userAuth');
 
 // Ruta (junto a las demás):
 app.use('/user', userAuthRoutes);
+
+// app.js — AGREGAR (2/4)
+
+// Import:
+const userAuthRoutes = require('./routes/userAuth');
+
+// Ruta (junto a las demás):
+app.use('/user', userAuthRoutes);
+
+
+// app.js — AGREGAR (3/4)
+
+// Import:
+const storeAdminRoutes = require('./routes/storeAdmin');
+
+// Ruta:
+app.use('/store-admin', storeAdminRoutes)
+
+
+// app.js — AGREGAR (4/4)
+
+// Import:
+const customerRoutes = require('./routes/customer');
+
+// Ruta:
+app.use('/customer', customerRoutes);
