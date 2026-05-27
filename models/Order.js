@@ -61,6 +61,8 @@ const Order = sequelize.define('Order', {
       key: 'id' 
     }
   }
+
+  
 });
 
 module.exports = Order;

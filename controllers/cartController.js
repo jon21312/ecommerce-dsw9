@@ -32,14 +32,14 @@ const cartController = {
         }
         cart.items[idx].quantity += quantity;
       } else {
-        // Tu fragmento agregado correctamente con storeId (mapeado de Sequelize)
+        // Unificación segura soportando camelCase y snake_case para evitar nulos
         cart.items.push({ 
           product: { 
             id: product.id, 
             name: product.name, 
             price: parseFloat(product.price), 
-            imageUrl: product.imageUrl, 
-            storeId: product.storeId || null // Guardamos la tienda para la orden posterior
+            imageUrl: product.imageUrl || product.image_url || '/images/placeholder.jpg', 
+            storeId: product.storeId || product.store_id || null // Soporta ambos mapeos de Sequelize
           }, 
           quantity 
         });
@@ -52,7 +52,7 @@ const cartController = {
       req.session.cart = cart;
       res.redirect('/cart');
     } catch (err) {
-      console.error(err); // Es bueno para debuggear en consola
+      console.error("Error al añadir al carrito:", err); 
       res.status(500).render('error', { title: 'Error', message: 'Error al agregar al carrito' });
     }
   },
